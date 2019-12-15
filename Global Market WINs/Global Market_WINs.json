@@ -1,0 +1,1355 @@
+{
+  "Join Case to Relate Case to WIN": {
+    "action": "augment",
+    "parameters": {
+      "right_key": [
+        "Id"
+      ],
+      "left": "Load Relate Case to WIN",
+      "left_key": [
+        "Case_ID__c"
+      ],
+      "right_select": [
+        "Fee__c"
+      ],
+      "right": "Join Record Type to Case",
+      "relationship": "Case",
+      "operation": "LookupSingleValue"
+    }
+  },
+  "Filter SObjectType WIN__c for Record Type": {
+    "action": "filter",
+    "parameters": {
+      "filter": "SObjectType:EQ:WIN__c",
+      "source": "Load Record Type"
+    }
+  },
+  "Flatted Relate Case to WIN": {
+    "action": "flatten",
+    "parameters": {
+      "include_self_id": true,
+      "self_field": "Flatten_Self_ID",
+      "multi_field": "All",
+      "parent_field": "Flatten_Parent_ID",
+      "path_field": "All_Path",
+      "source": "Add Flatten IDs to Relate Case to WIN"
+    }
+  },
+  "Filter Is Last Order true for Relate Case to WIN": {
+    "action": "filter",
+    "parameters": {
+      "filter": "IsLastOrder:EQ:true",
+      "source": "Add IsLastOrder to Relate Case to WIN"
+    }
+  },
+  "Filter Record Type for WIN": {
+    "action": "filter",
+    "parameters": {
+      "filter": "RecordType.DeveloperName:EQ:Advocacy|Advocacy_Locked|Commercial_Diplomacy|Commercial_Diplomacy_Locked|Export_Promotion|Export_Promotion_Locked|Investment_Promotion|Investment_Promotion_Locked",
+      "source": "Join Record Type to Win"
+    }
+  },
+  "Add Formulas to Industry": {
+    "action": "computeExpression",
+    "parameters": {
+      "source": "Load Industry",
+      "mergeWithSource": true,
+      "computedFields": [
+        {
+          "name": "Parent_ID",
+          "saqlExpression": "case\n    when 'Organization__c' is not null then 'Organization__c' \n    when 'Case_Industrial_Hierarchy__c' is not null then 'Case_Industrial_Hierarchy__c' \n    else 'WIN_Industrial_Hierarchy__c'\nend",
+          "label": "Parent ID",
+          "type": "Text"
+        },
+        {
+          "name": "Parent_Object",
+          "saqlExpression": "case\n    when 'Organization__c' is not null then \"Organization\" \n    when 'Case_Industrial_Hierarchy__c' is not null then \"In-Depth Touch\" \n    else \"WIN\"\nend",
+          "label": "Parent Object",
+          "type": "Text"
+        },
+        {
+          "name": "Is_Parent_Null",
+          "saqlExpression": "case\n    when 'Organization__c' is not null then \"false\"\n    when 'Case_Industrial_Hierarchy__c' is not null then \"false\"\n    when 'WIN_Industrial_Hierarchy__c' is not null then \"false\"\n    else \"true\"\nend",
+          "label": "Is Parent Null",
+          "type": "Text"
+        },
+        {
+          "type": "Text",
+          "name": "IsWin",
+          "label": "Is Win",
+          "saqlExpression": "case\n    when 'WIN_Industrial_Hierarchy__c' is not null then \"true\"\n    else \"false\"\nend"
+        }
+      ]
+    }
+  },
+  "Add Contributor Name to Win Contributor": {
+    "action": "computeExpression",
+    "parameters": {
+      "source": "Join User to Win Contributor",
+      "mergeWithSource": true,
+      "computedFields": [
+        {
+          "name": "Contributor",
+          "saqlExpression": "'Contributor.Name'",
+          "label": "Contributor",
+          "type": "Text"
+        }
+      ]
+    }
+  },
+  "Join Countries to Win": {
+    "action": "augment",
+    "parameters": {
+      "left": "Join Industries to Win",
+      "right": "Filter IsLastOrder to Country",
+      "relationship": "Related",
+      "operation": "LookupSingleValue",
+      "left_key": [
+        "Id"
+      ],
+      "right_key": [
+        "WIN__c"
+      ],
+      "right_select": [
+        "Countries.Country_Code",
+        "Countries.Country__c"
+      ]
+    }
+  },
+  "Load Industry": {
+    "action": "sfdcDigest",
+    "parameters": {
+      "incremental": true,
+      "fields": [
+        {
+          "name": "Id"
+        },
+        {
+          "name": "Industry__c"
+        },
+        {
+          "name": "Organization__c"
+        },
+        {
+          "name": "Case_Industrial_Hierarchy__c"
+        },
+        {
+          "name": "Sector__c"
+        },
+        {
+          "name": "Sub_Sector__c"
+        },
+        {
+          "name": "WIN_Industrial_Hierarchy__c"
+        },
+        {
+          "name": "IsDeleted"
+        }
+      ],
+      "object": "Industry__c"
+    }
+  },
+  "Join Industries to Win": {
+    "action": "augment",
+    "parameters": {
+      "left": "Join Win Contributor to Win",
+      "right": "Filter IsLastOrder to Industry",
+      "relationship": "Related",
+      "operation": "LookupSingleValue",
+      "left_key": [
+        "Id"
+      ],
+      "right_key": [
+        "WIN_Industrial_Hierarchy__c"
+      ],
+      "right_select": [
+        "Industries.Industry__c",
+        "Industries.Sector__c",
+        "Industries.Sub_Sector__c"
+      ]
+    }
+  },
+  "Flatten Industry": {
+    "schema": {
+      "objects": [
+        {
+          "fields": [
+            {
+              "name": "Industries",
+              "label": "Industries",
+              "isSystemField": false
+            },
+            {
+              "name": "Industries_Path",
+              "label": "Industries Path",
+              "isSystemField": false
+            }
+          ]
+        }
+      ]
+    },
+    "action": "flatten",
+    "parameters": {
+      "include_self_id": true,
+      "multi_field": "Industries",
+      "path_field": "Industries_Path",
+      "source": "Add Flatten IDs to Industry",
+      "self_field": "Flatten_Self_ID",
+      "parent_field": "Flatten_Parent_ID"
+    }
+  },
+  "Load Case": {
+    "action": "sfdcDigest",
+    "parameters": {
+      "incremental": true,
+      "fields": [
+        {
+          "name": "AccountId"
+        },
+        {
+          "fiscalMonthOffset": 9,
+          "name": "Actual_Create_Date__c"
+        },
+        {
+          "name": "CaseNumber"
+        },
+        {
+          "fiscalMonthOffset": 9,
+          "name": "ClosedDate"
+        },
+        {
+          "fiscalMonthOffset": 9,
+          "name": "CreatedDate"
+        },
+        {
+          "name": "Id"
+        },
+        {
+          "name": "IsClosed"
+        },
+        {
+          "name": "OwnerId"
+        },
+        {
+          "name": "ParentId"
+        },
+        {
+          "name": "RecordTypeId"
+        },
+        {
+          "name": "Status"
+        },
+        {
+          "name": "Subject"
+        },
+        {
+          "name": "Type"
+        },
+        {
+          "name": "Record_Type__c"
+        },
+        {
+          "fiscalMonthOffset": 9,
+          "name": "Actual_Case_Closed_Date__c"
+        },
+        {
+          "name": "Industry_Sector__c"
+        },
+        {
+          "name": "ImportCountry__c"
+        },
+        {
+          "name": "IsEscalated"
+        },
+        {
+          "name": "Other_Countries__c"
+        },
+        {
+          "name": "Primary_Country__c"
+        },
+        {
+          "name": "Reason"
+        },
+        {
+          "name": "Priority"
+        },
+        {
+          "name": "Record_type_selector__c"
+        },
+        {
+          "name": "Fee__c"
+        }
+      ],
+      "object": "Case"
+    }
+  },
+  "Add Order to Industry": {
+    "action": "computeRelative",
+    "parameters": {
+      "source": "Filter IsDeleted, IsWin to Industry",
+      "computedFields": [
+        {
+          "name": "Order",
+          "label": "Order",
+          "expression": {
+            "saqlExpression": "case\n    when previous('Order') > 0 then previous('Order') + 1\n    else 1\nend",
+            "type": "Numeric",
+            "scale": 10
+          }
+        }
+      ],
+      "orderBy": [
+        {
+          "name": "Id",
+          "direction": "asc"
+        }
+      ],
+      "partitionBy": [
+        "WIN_Industrial_Hierarchy__c"
+      ]
+    }
+  },
+  "Filter IsLastOrder true for Win Contributor": {
+    "action": "filter",
+    "parameters": {
+      "filter": "IsLastOrder:EQ:true",
+      "source": "Add IsLastOrder to Win Contributor"
+    }
+  },
+  "Join Relate Case to WIN to Win": {
+    "action": "augment",
+    "parameters": {
+      "right_key": [
+        "Related_WIN__c"
+      ],
+      "left": "Join Countries to Win",
+      "left_key": [
+        "Id"
+      ],
+      "right_select": [
+        "Cases.Fee_Based_Service"
+      ],
+      "right": "Filter Is Last Order true for Relate Case to WIN",
+      "relationship": "Related",
+      "operation": "LookupSingleValue"
+    }
+  },
+  "Add Order to Related Case to WIN": {
+    "action": "computeRelative",
+    "parameters": {
+      "partitionBy": [
+        "Related_WIN__c"
+      ],
+      "orderBy": [
+        {
+          "name": "Id",
+          "direction": "asc"
+        }
+      ],
+      "source": "Join Case to Relate Case to WIN",
+      "computedFields": [
+        {
+          "expression": {
+            "saqlExpression": "case\n    when previous('Order') > 0 then previous('Order') + 1\n    else 1\nend",
+            "scale": 10,
+            "type": "Numeric"
+          },
+          "name": "Order",
+          "label": "Order"
+        }
+      ]
+    }
+  },
+  "Filter IsLastOrder to Country": {
+    "action": "filter",
+    "parameters": {
+      "filter": "IsLastOrder:EQ:true",
+      "source": "Add IsLastOrder to Country"
+    }
+  },
+  "Add Flatten IDs to Industry": {
+    "action": "computeExpression",
+    "parameters": {
+      "source": "Add Order to Industry",
+      "mergeWithSource": true,
+      "computedFields": [
+        {
+          "name": "Flatten_Self_ID",
+          "saqlExpression": "'WIN_Industrial_Hierarchy__c' + \":\" + number_to_string('Order', \"0\")",
+          "label": "Flatten: Self ID",
+          "type": "Text"
+        },
+        {
+          "name": "Flatten_Parent_ID",
+          "saqlExpression": "case\n    when 'Order' > 1 then 'WIN_Industrial_Hierarchy__c' + \":\" + number_to_string('Order' - 1, \"0\")\nend\n   ",
+          "label": "Flatten: Parent ID",
+          "type": "Text"
+        }
+      ]
+    }
+  },
+  "Filter IsLastOrder to Industry": {
+    "action": "filter",
+    "parameters": {
+      "filter": "IsLastOrder:EQ:true",
+      "source": "Add IsLastOrder to Industry"
+    }
+  },
+  "Join Account to Win": {
+    "action": "augment",
+    "parameters": {
+      "right_key": [
+        "Id"
+      ],
+      "left": "Join Relate Case to WIN to Win",
+      "left_key": [
+        "Organization__c"
+      ],
+      "right_select": [
+        "Name"
+      ],
+      "right": "Join Record Type to Account",
+      "relationship": "Organization",
+      "operation": "LookupSingleValue"
+    }
+  },
+  "Join Relate Cases to WIN to self": {
+    "action": "augment",
+    "parameters": {
+      "right_key": [
+        "Flatten_Self_ID"
+      ],
+      "left": "Flatted Relate Case to WIN",
+      "left_key": [
+        "All"
+      ],
+      "right_select": [
+        "Fee_Based_Service"
+      ],
+      "right": "Flatted Relate Case to WIN",
+      "relationship": "Cases",
+      "operation": "LookupMultiValue"
+    }
+  },
+  "Add IsLastOrder to Relate Case to WIN": {
+    "action": "computeRelative",
+    "parameters": {
+      "partitionBy": [
+        "Related_WIN__c"
+      ],
+      "orderBy": [
+        {
+          "name": "Order",
+          "direction": "desc"
+        }
+      ],
+      "source": "Join Relate Cases to WIN to self",
+      "computedFields": [
+        {
+          "expression": {
+            "saqlExpression": " case first('Order')\n    when current('Order') then \"true\"\n    else \"false\"\nend",
+            "type": "Text"
+          },
+          "name": "IsLastOrder",
+          "label": "IsLastOrder"
+        }
+      ]
+    }
+  },
+  "Load Accounts": {
+    "action": "sfdcDigest",
+    "parameters": {
+      "incremental": true,
+      "fields": [
+        {
+          "fiscalMonthOffset": 9,
+          "name": "Actual_Create_Date__c"
+        },
+        {
+          "name": "Associated_Business_Names__c"
+        },
+        {
+          "name": "BillingCity"
+        },
+        {
+          "name": "BillingCountry"
+        },
+        {
+          "name": "BillingCountryCode"
+        },
+        {
+          "name": "BillingGeocodeAccuracy"
+        },
+        {
+          "name": "BillingLatitude"
+        },
+        {
+          "name": "BillingLongitude"
+        },
+        {
+          "name": "BillingPostalCode"
+        },
+        {
+          "name": "BillingState"
+        },
+        {
+          "name": "BillingStateCode"
+        },
+        {
+          "name": "BillingStreet"
+        },
+        {
+          "name": "Congressional_District_formula__c"
+        },
+        {
+          "name": "County_Name__c"
+        },
+        {
+          "name": "CreatedById"
+        },
+        {
+          "fiscalMonthOffset": 9,
+          "name": "CreatedDate"
+        },
+        {
+          "name": "Id"
+        },
+        {
+          "name": "Industries__c"
+        },
+        {
+          "name": "Is_Holding__c"
+        },
+        {
+          "name": "Is_Subsidiary__c"
+        },
+        {
+          "name": "Local_ITA_Office__c"
+        },
+        {
+          "name": "NAICS__c"
+        },
+        {
+          "name": "NaicsDesc"
+        },
+        {
+          "name": "NaicsCode"
+        },
+        {
+          "name": "Name"
+        },
+        {
+          "name": "NumberOfEmployees"
+        },
+        {
+          "name": "OwnerId"
+        },
+        {
+          "name": "Owner_Office__c"
+        },
+        {
+          "name": "ParentId"
+        },
+        {
+          "name": "RecordTypeId"
+        },
+        {
+          "name": "State_Code__c"
+        },
+        {
+          "name": "SME__c"
+        },
+        {
+          "name": "SicDesc"
+        },
+        {
+          "name": "Tradestyle"
+        },
+        {
+          "name": "Validated__c"
+        },
+        {
+          "name": "YearStarted"
+        },
+        {
+          "name": "Account_Type__c"
+        },
+        {
+          "name": "Category__c"
+        },
+        {
+          "name": "DandbCompanyId"
+        },
+        {
+          "name": "DunsNumber"
+        },
+        {
+          "name": "eMenu_ES_ID__c"
+        },
+        {
+          "name": "eMenu_Org_Name__c"
+        },
+        {
+          "name": "Industry"
+        },
+        {
+          "name": "Type"
+        }
+      ],
+      "object": "Account"
+    }
+  },
+  "Add Order to Country": {
+    "action": "computeRelative",
+    "parameters": {
+      "source": "Filter IsDeleted, IsWin to Country",
+      "computedFields": [
+        {
+          "name": "Order",
+          "label": "Order",
+          "expression": {
+            "saqlExpression": "case\n    when previous('Order') > 0 then previous('Order') + 1\n    else 1\nend",
+            "type": "Numeric",
+            "scale": 10
+          }
+        }
+      ],
+      "orderBy": [
+        {
+          "name": "Id",
+          "direction": "asc"
+        }
+      ],
+      "partitionBy": [
+        "WIN__c"
+      ]
+    }
+  },
+  "Filter SObjectType Account for Record Type": {
+    "action": "filter",
+    "parameters": {
+      "filter": "SObjectType:EQ:Account",
+      "source": "Load Record Type"
+    }
+  },
+  "Load Relate Case to WIN": {
+    "action": "sfdcDigest",
+    "parameters": {
+      "incremental": true,
+      "fields": [
+        {
+          "name": "Id"
+        },
+        {
+          "name": "Case_ID__c"
+        },
+        {
+          "name": "Related_WIN__c"
+        }
+      ],
+      "object": "Related_Cases_and_Orgs__c"
+    }
+  },
+  "Save Win with Contributors, Industries, Countries": {
+    "action": "sfdcRegister",
+    "parameters": {
+      "name": "Global Markets: WINs",
+      "alias": "Global_Markets_WINs",
+      "source": "Add final Formulas to Win"
+    }
+  },
+  "Load Country": {
+    "action": "sfdcDigest",
+    "parameters": {
+      "incremental": true,
+      "fields": [
+        {
+          "name": "Case__c"
+        },
+        {
+          "name": "Id"
+        },
+        {
+          "name": "Country__c"
+        },
+        {
+          "name": "WIN__c"
+        },
+        {
+          "name": "IsDeleted"
+        }
+      ],
+      "object": "RelatedCountries__c"
+    }
+  },
+  "Add Formulas For Country": {
+    "action": "computeExpression",
+    "parameters": {
+      "source": "Load Country",
+      "mergeWithSource": true,
+      "computedFields": [
+        {
+          "name": "Country_Code",
+          "saqlExpression": "case 'Country__c'\n\twhen \"Afghanistan\" then \"AFG\"\n\twhen \"Aland Islands\" then \"ALA\"\n\twhen \"Albania\" then \"ALB\"\n\twhen \"Algeria\" then \"DZA\"\n\twhen \"Andorra\" then \"AND\"\n\twhen \"Angola\" then \"AGO\"\n\twhen \"Anguilla\" then \"AIA\"\n\twhen \"Antarctica\" then \"ATA\"\n\twhen \"Antigua and Barbuda\" then \"ATG\"\n\twhen \"Argentina\" then \"ARG\"\n\twhen \"Armenia\" then \"ARM\"\n\twhen \"Aruba\" then \"ABW\"\n\twhen \"Australia\" then \"AUS\"\n\twhen \"Austria\" then \"AUT\"\n\twhen \"Azerbaijan\" then \"AZE\"\n\twhen \"Bahamas\" then \"BHS\"\n\twhen \"Bahrain\" then \"BHR\"\n\twhen \"Bangladesh\" then \"BGD\"\n\twhen \"Barbados\" then \"BRB\"\n\twhen \"Belarus\" then \"BLR\"\n\twhen \"Belgium\" then \"BEL\"\n\twhen \"Belize\" then \"BLZ\"\n\twhen \"Benin\" then \"BEN\"\n\twhen \"Bermuda\" then \"BMU\"\n\twhen \"Bhutan\" then \"BTN\"\n\twhen \"Bolivia, Plurinational State of\" then \"BOL\"\n\twhen \"Bonaire, Sint Eustatius and Saba\" then \"BES\"\n\twhen \"Bosnia and Herzegovina\" then \"BIH\"\n\twhen \"Botswana\" then \"BWA\"\n\twhen \"Bouvet Island\" then \"BVT\"\n\twhen \"Brazil\" then \"BRA\"\n\twhen \"British Indian Ocean Territory\" then \"IOT\"\n\twhen \"Brunei Darussalam\" then \"BRN\"\n\twhen \"Bulgaria\" then \"BGR\"\n\twhen \"Burkina Faso\" then \"BFA\"\n\twhen \"Burundi\" then \"BDI\"\n\twhen \"Cambodia\" then \"KHM\"\n\twhen \"Cameroon\" then \"CMR\"\n\twhen \"Canada\" then \"CAN\"\n\twhen \"Cape Verde\" then \"CPV\"\n\twhen \"Cayman Islands\" then \"CYM\"\n\twhen \"Central African Republic\" then \"CAF\"\n\twhen \"Chad\" then \"TCD\"\n\twhen \"Chile\" then \"CHL\"\n\twhen \"China\" then \"CHN\"\n\twhen \"Christmas Island\" then \"CXR\"\n\twhen \"Cocos (Keeling) Islands\" then \"CCK\"\n\twhen \"Colombia\" then \"COL\"\n\twhen \"Comoros\" then \"COM\"\n\twhen \"Congo\" then \"COG\"\n\twhen \"Congo, the Democratic Republic of the\" then \"COD\"\n\twhen \"Cook Islands\" then \"COK\"\n\twhen \"Costa Rica\" then \"CRI\"\n\twhen \"Cote d’Ivoire\" then \"CIV\"\n\twhen \"Croatia\" then \"HRV\"\n\twhen \"Cuba\" then \"CUB\"\n\twhen \"Curaçao\" then \"CUW\"\n\twhen \"Cyprus\" then \"CYP\"\n\twhen \"Czech Republic\" then \"CZE\"\n\twhen \"Denmark\" then \"DNK\"\n\twhen \"Djibouti\" then \"DJI\"\n\twhen \"Dominica\" then \"DMA\"\n\twhen \"Dominican Republic\" then \"DOM\"\n\twhen \"Ecuador\" then \"ECU\"\n\twhen \"Egypt\" then \"EGY\"\n\twhen \"El Salvador\" then \"SLV\"\n\twhen \"Equatorial Guinea\" then \"GNQ\"\n\twhen \"Eritrea\" then \"ERI\"\n\twhen \"Estonia\" then \"EST\"\n\twhen \"Ethiopia\" then \"ETH\"\n\twhen \"Falkland Islands (Malvinas)\" then \"FLK\"\n\twhen \"Faroe Islands\" then \"FRO\"\n\twhen \"Fiji\" then \"FJI\"\n\twhen \"Finland\" then \"FIN\"\n\twhen \"France\" then \"FRA\"\n\twhen \"French Guiana\" then \"GUF\"\n\twhen \"French Polynesia\" then \"PYF\"\n\twhen \"French Southern Territories\" then \"ATF\"\n\twhen \"Gabon\" then \"GAB\"\n\twhen \"Gambia\" then \"GMB\"\n\twhen \"Georgia\" then \"GEO\"\n\twhen \"Germany\" then \"DEU\"\n\twhen \"Ghana\" then \"GHA\"\n\twhen \"Gibraltar\" then \"GIB\"\n\twhen \"Greece\" then \"GRC\"\n\twhen \"Greenland\" then \"GRL\"\n\twhen \"Grenada\" then \"GRD\"\n\twhen \"Guadeloupe\" then \"GLP\"\n\twhen \"Guatemala\" then \"GTM\"\n\twhen \"Guernsey\" then \"GGY\"\n\twhen \"Guinea\" then \"GIN\"\n\twhen \"Guinea-Bissau\" then \"GNB\"\n\twhen \"Guyana\" then \"GUY\"\n\twhen \"Haiti\" then \"HTI\"\n\twhen \"Heard Island and McDonald Islands\" then \"HMD\"\n\twhen \"Holy See (Vatican City State)\" then \"VAT\"\n\twhen \"Honduras\" then \"HND\"\n\twhen \"Hong Kong\" then \"HKG\"\n\twhen \"Hungary\" then \"HUN\"\n\twhen \"Iceland\" then \"ISL\"\n\twhen \"India\" then \"IND\"\n\twhen \"Indonesia\" then \"IDN\"\n\twhen \"Iran, Islamic Republic of\" then \"IRN\"\n\twhen \"Iraq\" then \"IRQ\"\n\twhen \"Ireland\" then \"IRL\"\n\twhen \"Isle of Man\" then \"IMN\"\n\twhen \"Israel\" then \"ISR\"\n\twhen \"Italy\" then \"ITA\"\n\twhen \"Jamaica\" then \"JAM\"\n\twhen \"Japan\" then \"JPN\"\n\twhen \"Jersey\" then \"JEY\"\n\twhen \"Jordan\" then \"JOR\"\n\twhen \"Kazakhstan\" then \"KAZ\"\n\twhen \"Kenya\" then \"KEN\"\n\twhen \"Kiribati\" then \"KIR\"\n\twhen \"Korea, Democratic People’s Republic of\" then \"PRK\"\n\twhen \"Korea, Republic of\" then \"KOR\"\n\twhen \"Kuwait\" then \"KWT\"\n\twhen \"Kyrgyzstan\" then \"KGZ\"\n\twhen \"Lao People’s Democratic Republic\" then \"LAO\"\n\twhen \"Latvia\" then \"LVA\"\n\twhen \"Lebanon\" then \"LBN\"\n\twhen \"Lesotho\" then \"LSO\"\n\twhen \"Liberia\" then \"LBR\"\n\twhen \"Libyan Arab Jamahiriya\" then \"LBY\"\n\twhen \"Liechtenstein\" then \"LIE\"\n\twhen \"Lithuania\" then \"LTU\"\n\twhen \"Luxembourg\" then \"LUX\"\n\twhen \"Macao\" then \"MAC\"\n\twhen \"Macedonia, the former Yugoslav Republic of\" then \"MKD\"\n\twhen \"Madagascar\" then \"MDG\"\n\twhen \"Malawi\" then \"MWI\"\n\twhen \"Malaysia\" then \"MYS\"\n\twhen \"Maldives\" then \"MDV\"\n\twhen \"Mali\" then \"MLI\"\n\twhen \"Malta\" then \"MLT\"\n\twhen \"Martinique\" then \"MTQ\"\n\twhen \"Mauritania\" then \"MRT\"\n\twhen \"Mauritius\" then \"MUS\"\n\twhen \"Mayotte\" then \"MYT\"\n\twhen \"Mexico\" then \"MEX\"\n\twhen \"Moldova, Republic of\" then \"MDA\"\n\twhen \"Monaco\" then \"MCO\"\n\twhen \"Mongolia\" then \"MNG\"\n\twhen \"Montenegro\" then \"MNE\"\n\twhen \"Montserrat\" then \"MSR\"\n\twhen \"Morocco\" then \"MAR\"\n\twhen \"Mozambique\" then \"MOZ\"\n\twhen \"Myanmar\" then \"MMR\"\n\twhen \"Namibia\" then \"NAM\"\n\twhen \"Nauru\" then \"NRU\"\n\twhen \"Nepal\" then \"NPL\"\n\twhen \"Netherlands\" then \"NLD\"\n\twhen \"New Caledonia\" then \"NCL\"\n\twhen \"New Zealand\" then \"NZL\"\n\twhen \"Nicaragua\" then \"NIC\"\n\twhen \"Niger\" then \"NER\"\n\twhen \"Nigeria\" then \"NGA\"\n\twhen \"Niue\" then \"NIU\"\n\twhen \"Norfolk Island\" then \"NFK\"\n\twhen \"Norway\" then \"NOR\"\n\twhen \"Oman\" then \"OMN\"\n\twhen \"Pakistan\" then \"PAK\"\n\twhen \"Palestinian Territory, Occupied\" then \"PSE\"\n\twhen \"Panama\" then \"PAN\"\n\twhen \"Papua New Guinea\" then \"PNG\"\n\twhen \"Paraguay\" then \"PRY\"\n\twhen \"Peru\" then \"PER\"\n\twhen \"Philippines\" then \"PHL\"\n\twhen \"Pitcairn\" then \"PCN\"\n\twhen \"Poland\" then \"POL\"\n\twhen \"Portugal\" then \"PRT\"\n\twhen \"Qatar\" then \"QAT\"\n\twhen \"Reunion\" then \"REU\"\n\twhen \"Romania\" then \"ROU\"\n\twhen \"Russian Federation\" then \"RUS\"\n\twhen \"Rwanda\" then \"RWA\"\n\twhen \"Saint Barthélemy\" then \"SHN\"\n\twhen \"Saint Helena, Ascension and Tristan da Cunha\" then \"SHN\"\n\twhen \"Saint Kitts and Nevis\" then \"KNA\"\n\twhen \"Saint Lucia\" then \"LCA\"\n\twhen \"Saint Martin (French part)\" then \"MAF\"\n\twhen \"Saint Pierre and Miquelon\" then \"SPM\"\n\twhen \"Saint Vincent and the Grenadines\" then \"VCT\"\n\twhen \"Samoa\" then \"WSM\"\n\twhen \"San Marino\" then \"SMR\"\n\twhen \"Sao Tome and Principe\" then \"STP\"\n\twhen \"Saudi Arabia\" then \"SAU\"\n\twhen \"Senegal\" then \"SEN\"\n\twhen \"Serbia\" then \"SRB\"\n\twhen \"Seychelles\" then \"SYC\"\n\twhen \"Sierra Leone\" then \"SLE\"\n\twhen \"Singapore\" then \"SGP\"\n\twhen \"Sint Maarten (Dutch part)\" then \"SXM\"\n\twhen \"Slovakia\" then \"SVK\"\n\twhen \"Slovenia\" then \"SVN\"\n\twhen \"Solomon Islands\" then \"SLB\"\n\twhen \"Somalia\" then \"SOM\"\n\twhen \"South Africa\" then \"ZAF\"\n\twhen \"South Georgia and the South Sandwich Islands\" then \"SGS\"\n\twhen \"South Sudan\" then \"SSD\"\n\twhen \"Spain\" then \"ESP\"\n\twhen \"Sri Lanka\" then \"LKA\"\n\twhen \"Sudan\" then \"SDN\"\n\twhen \"Suriname\" then \"SUR\"\n\twhen \"Svalbard and Jan Mayen\" then \"SJM\"\n\twhen \"Swaziland\" then \"SWZ\"\n\twhen \"Sweden\" then \"SWE\"\n\twhen \"Switzerland\" then \"CHE\"\n\twhen \"Syrian Arab Republic\" then \"SYR\"\n\twhen \"Taiwan\" then \"TWN\"\n\twhen \"Tajikistan\" then \"TJK\"\n\twhen \"Tanzania, United Republic of\" then \"TZA\"\n\twhen \"Thailand\" then \"THA\"\n\twhen \"Timor-Leste\" then \"TLS\"\n\twhen \"Togo\" then \"TGO\"\n\twhen \"Tokelau\" then \"TKL\"\n\twhen \"Tonga\" then \"TON\"\n\twhen \"Trinidad and Tobago\" then \"TTO\"\n\twhen \"Tunesia\" then \"TUN\"\n\twhen \"Turkey\" then \"TUR\"\n\twhen \"Turkmenistan\" then \"TKM\"\n\twhen \"Turks and Caicos Islands\" then \"TCA\"\n\twhen \"Tuvalu\" then \"TUV\"\n\twhen \"Uganda\" then \"UGA\"\n\twhen \"Ukraine\" then \"UKR\"\n\twhen \"United Arab Emirates\" then \"ARE\"\n\twhen \"United Kingdom\" then \"GBR\"\n\twhen \"United States\" then \"USA\"\n\twhen \"Uruguay\" then \"URY\"\n\twhen \"Uzbekistan\" then \"UZB\"\n\twhen \"Vanuatu\" then \"VUT\"\n\twhen \"Venezuela, Bolivarian Republic of\" then \"VEN\"\n\twhen \"Vietnam\" then \"VNM\"\n\twhen \"Virgin Islands, British\" then \"VGB\"\n\twhen \"Wallis and Futuna\" then \"WLF\"\n\twhen \"Western Sahara\" then \"ESH\"\n\twhen \"Yemen\" then \"YEM\"\n\twhen \"Zambia\" then \"ZMB\"\n\twhen \"Zimbabwe\" then \"ZWE\"\n\telse 'Country__c'\nend",
+          "label": "Country Code",
+          "type": "Text"
+        },
+        {
+          "type": "Text",
+          "name": "IsWin",
+          "label": "Is Win",
+          "saqlExpression": "case\n    when 'WIN__c' is not null then \"true\"\n    else \"false\"\nend"
+        }
+      ]
+    }
+  },
+  "Flatten Countries": {
+    "action": "flatten",
+    "parameters": {
+      "include_self_id": true,
+      "self_field": "Flatten_Self_ID",
+      "multi_field": "Countries",
+      "parent_field": "Flatten_Parent_ID",
+      "path_field": "Countries_Path",
+      "source": "Add Flatten IDs to Country"
+    }
+  },
+  "Join Record Type to Win": {
+    "action": "augment",
+    "parameters": {
+      "right_key": [
+        "Id"
+      ],
+      "left": "Filter is not deleted and approved for WIN",
+      "left_key": [
+        "RecordTypeId"
+      ],
+      "right_select": [
+        "Name",
+        "DeveloperName"
+      ],
+      "right": "Filter SObjectType WIN__c for Record Type",
+      "relationship": "RecordType",
+      "operation": "LookupSingleValue"
+    }
+  },
+  "Add IsLastOrder to Industry": {
+    "action": "computeRelative",
+    "parameters": {
+      "source": "Join Industry to self",
+      "computedFields": [
+        {
+          "name": "IsLastOrder",
+          "label": "Is Last Order",
+          "expression": {
+            "saqlExpression": " case first('Order')\n    when current('Order') then \"true\"\n    else \"false\"\nend",
+            "type": "Text"
+          }
+        }
+      ],
+      "orderBy": [
+        {
+          "name": "Order",
+          "direction": "desc"
+        }
+      ],
+      "partitionBy": [
+        "WIN_Industrial_Hierarchy__c"
+      ]
+    }
+  },
+  "Filter IsDeleted, IsWin to Industry": {
+    "action": "filter",
+    "parameters": {
+      "filter": "IsDeleted:EQ:false,IsWin:EQ:true",
+      "source": "Add Formulas to Industry"
+    }
+  },
+  "Filter SObjectType Case for Record Type": {
+    "action": "filter",
+    "parameters": {
+      "filter": "SObjectType:EQ:Case",
+      "source": "Load Record Type"
+    }
+  },
+  "Filter is not deleted and approved for WIN": {
+    "action": "filter",
+    "parameters": {
+      "filter": "IsDeleted:EQ:false,Final_Line_Approval__c:EQ:Approved",
+      "source": "Load WIN"
+    }
+  },
+  "Load Record Type": {
+    "action": "sfdcDigest",
+    "parameters": {
+      "incremental": true,
+      "fields": [
+        {
+          "name": "Id"
+        },
+        {
+          "name": "Name"
+        },
+        {
+          "name": "SobjectType"
+        },
+        {
+          "name": "DeveloperName"
+        }
+      ],
+      "object": "RecordType"
+    }
+  },
+  "Join Country to self": {
+    "action": "augment",
+    "parameters": {
+      "left": "Flatten Countries",
+      "right": "Flatten Countries",
+      "relationship": "Countries",
+      "operation": "LookupMultiValue",
+      "left_key": [
+        "Countries"
+      ],
+      "right_key": [
+        "Flatten_Self_ID"
+      ],
+      "right_select": [
+        "Country__c",
+        "Country_Code"
+      ]
+    }
+  },
+  "Join Industry to self": {
+    "action": "augment",
+    "parameters": {
+      "left": "Flatten Industry",
+      "right": "Flatten Industry",
+      "relationship": "Industries",
+      "operation": "LookupMultiValue",
+      "left_key": [
+        "Industries"
+      ],
+      "right_key": [
+        "Flatten_Self_ID"
+      ],
+      "right_select": [
+        "Industry__c",
+        "Sector__c",
+        "Sub_Sector__c"
+      ]
+    }
+  },
+  "Join User to Win Contributor": {
+    "action": "augment",
+    "parameters": {
+      "right_key": [
+        "Id"
+      ],
+      "left": "Add Flatten IDs for Win Contributor",
+      "left_key": [
+        "Contributor_ID"
+      ],
+      "right_select": [
+        "Name"
+      ],
+      "right": "Add User Formulas",
+      "relationship": "Contributor",
+      "operation": "LookupSingleValue"
+    }
+  },
+  "Add IsLastOrder to Country": {
+    "action": "computeRelative",
+    "parameters": {
+      "source": "Join Country to self",
+      "computedFields": [
+        {
+          "name": "IsLastOrder",
+          "label": "IsLastOrder",
+          "expression": {
+            "saqlExpression": " case first('Order')\n    when current('Order') then \"true\"\n    else \"false\"\nend",
+            "type": "Text"
+          }
+        }
+      ],
+      "orderBy": [
+        {
+          "name": "Order",
+          "direction": "desc"
+        }
+      ],
+      "partitionBy": [
+        "WIN__c"
+      ]
+    }
+  },
+  "Join Record Type to Account": {
+    "action": "augment",
+    "parameters": {
+      "right_key": [
+        "Id"
+      ],
+      "left": "Load Accounts",
+      "left_key": [
+        "RecordTypeId"
+      ],
+      "right_select": [
+        "DeveloperName",
+        "Name"
+      ],
+      "right": "Filter SObjectType Account for Record Type",
+      "relationship": "RecordType",
+      "operation": "LookupSingleValue"
+    }
+  },
+  "Join Win Conributors to Win Contributor": {
+    "action": "augment",
+    "parameters": {
+      "left": "Flatten Win Contributors",
+      "right": "Flatten Win Contributors",
+      "relationship": "Contributors",
+      "operation": "LookupMultiValue",
+      "left_key": [
+        "Contributors"
+      ],
+      "right_key": [
+        "Flatten_Self_ID"
+      ],
+      "right_select": [
+        "RH_Lev_1_GM_All__c",
+        "RH_Lev_2_DAS__c",
+        "RH_Lev_3_Region_2__c",
+        "RH_Lev_4_Region_1__c",
+        "RH_Lev_5_Country__c",
+        "RH_Lev_6_Office__c",
+        "Contributor_ID",
+        "DAS",
+        "Contributor"
+      ]
+    }
+  },
+  "Add Flatten IDs to Relate Case to WIN": {
+    "action": "computeExpression",
+    "parameters": {
+      "source": "Add Order to Related Case to WIN",
+      "mergeWithSource": true,
+      "computedFields": [
+        {
+          "name": "Flatten_Self_ID",
+          "saqlExpression": "'Related_WIN__c' + \":\" + number_to_string('Order', \"0\")",
+          "label": "Flatten: Self ID",
+          "type": "Text"
+        },
+        {
+          "name": "Flatten_Parent_ID",
+          "saqlExpression": "case\n    when 'Order' > 1 then 'Related_WIN__c' + \":\" + number_to_string('Order' - 1, \"0\")\nend",
+          "label": "Flatten: Parent ID",
+          "type": "Text"
+        },
+        {
+          "name": "Fee_Based_Service",
+          "saqlExpression": "'Case.Fee__c'",
+          "label": "Fee- Based Service",
+          "type": "Text"
+        }
+      ]
+    }
+  },
+  "Add User Formulas": {
+    "action": "computeExpression",
+    "parameters": {
+      "source": "Load Users",
+      "mergeWithSource": true,
+      "computedFields": [
+        {
+          "name": "Name",
+          "saqlExpression": "'LastName' + \", \" + 'FirstName'",
+          "label": "Name",
+          "type": "Text"
+        }
+      ]
+    }
+  },
+  "Filter Is Parent Null false for Win Contributor": {
+    "action": "filter",
+    "parameters": {
+      "filter": "Is_Parent_Null:EQ:false",
+      "source": "Add formulas to Win Contributor"
+    }
+  },
+  "Add formulas to Win Contributor": {
+    "action": "computeExpression",
+    "parameters": {
+      "source": "Load Win Contributor",
+      "mergeWithSource": true,
+      "computedFields": [
+        {
+          "name": "Is_Parent_Null",
+          "saqlExpression": "case\n    when 'WIN__c' is not null then \"false\"\n    else \"true\"\nend",
+          "label": "Is Parent Null",
+          "type": "Text"
+        }
+      ]
+    }
+  },
+  "Join Record Type to Case": {
+    "action": "augment",
+    "parameters": {
+      "right_key": [
+        "Id"
+      ],
+      "left": "Load Case",
+      "left_key": [
+        "RecordTypeId"
+      ],
+      "right_select": [
+        "DeveloperName",
+        "Name"
+      ],
+      "right": "Filter SObjectType Case for Record Type",
+      "relationship": "RecordType",
+      "operation": "LookupSingleValue"
+    }
+  },
+  "Flatten Win Contributors": {
+    "action": "flatten",
+    "parameters": {
+      "include_self_id": true,
+      "self_field": "Flatten_Self_ID",
+      "multi_field": "Contributors",
+      "parent_field": "Flatten_Parent_ID",
+      "path_field": "Contributors_Path",
+      "source": "Add Contributor Name to Win Contributor"
+    }
+  },
+  "Join Win Contributor to Win": {
+    "action": "augment",
+    "parameters": {
+      "left": "Add Formulas to Win",
+      "right": "Filter IsLastOrder true for Win Contributor",
+      "relationship": "Related",
+      "operation": "LookupSingleValue",
+      "left_key": [
+        "Id"
+      ],
+      "right_key": [
+        "WIN__c"
+      ],
+      "right_select": [
+        "Contributors.RH_Lev_1_GM_All__c",
+        "Contributors.RH_Lev_2_DAS__c",
+        "Contributors.RH_Lev_3_Region_2__c",
+        "Contributors.RH_Lev_4_Region_1__c",
+        "Contributors.RH_Lev_5_Country__c",
+        "Contributors.RH_Lev_6_Office__c",
+        "Contributors.Contributor_ID",
+        "Contributors.DAS",
+        "Contributors.Contributor"
+      ]
+    }
+  },
+  "Load WIN": {
+    "action": "sfdcDigest",
+    "parameters": {
+      "incremental": true,
+      "fields": [
+        {
+          "fiscalMonthOffset": 9,
+          "name": "Actual_Create_Date__c"
+        },
+        {
+          "name": "Id"
+        },
+        {
+          "name": "Name"
+        },
+        {
+          "name": "Organization__c"
+        },
+        {
+          "name": "OwnerId"
+        },
+        {
+          "name": "RecordTypeId"
+        },
+        {
+          "name": "Primary_Outcome__c"
+        },
+        {
+          "fiscalMonthOffset": 9,
+          "name": "WIN_Date__c"
+        },
+        {
+          "name": "WIN_Title__c"
+        },
+        {
+          "name": "WIN_Name__c"
+        },
+        {
+          "name": "Advocacy_Total_Project_Value__c"
+        },
+        {
+          "name": "Final_Line_Approval__c"
+        },
+        {
+          "name": "Actual_Follow_on_Value__c"
+        },
+        {
+          "name": "Related_Countries__c"
+        },
+        {
+          "name": "WIN_Type_Selector__c"
+        },
+        {
+          "name": "WIN_Type__c"
+        },
+        {
+          "name": "Actual_Initial_Value__c"
+        },
+        {
+          "name": "Client_Provided_Value__c"
+        },
+        {
+          "name": "AC_Total_US_Export_Content__c"
+        },
+        {
+          "name": "IP_Inv_Amount_est__c"
+        },
+        {
+          "name": "IsDeleted"
+        }
+      ],
+      "complexFilterConditions": "IsDeleted = false\nAND RecordType.DeveloperName IN (\n    'Advocacy',\n    'Advocacy_Locked',\n    'Commercial_Diplomacy',\n    'Commercial_Diplomacy_Locked',\n    'Export_Promotion',\n    'Export_Promotion_Locked',\n    'Investment_Promotion',\n    'Investment_Promotion_Locked'\n)\nAND Final_Line_Approval__c = 'Approved'\nAND (\n    Actual_Create_Date__c = LAST_N_FISCAL_YEARS:3\n    OR Actual_Create_Date__c = THIS_FISCAL_YEAR\n)",
+      "object": "WIN__c"
+    }
+  },
+  "Add Flatten IDs to Country": {
+    "action": "computeExpression",
+    "parameters": {
+      "source": "Add Order to Country",
+      "mergeWithSource": true,
+      "computedFields": [
+        {
+          "name": "Flatten_Self_ID",
+          "saqlExpression": "'WIN__c' + \":\" + number_to_string('Order', \"0\")",
+          "label": "Flatten: Self ID",
+          "type": "Text"
+        },
+        {
+          "name": "Flatten_Parent_ID",
+          "saqlExpression": "case\n    when 'Order' > 1 then 'WIN__c' + \":\" + number_to_string('Order' - 1, \"0\")\nend",
+          "label": "Flatten: Parent ID",
+          "type": "Text"
+        }
+      ]
+    }
+  },
+  "Add final Formulas to Win": {
+    "action": "computeExpression",
+    "parameters": {
+      "source": "Join Account to Win",
+      "mergeWithSource": true,
+      "computedFields": [
+        {
+          "name": "Organization_Name",
+          "saqlExpression": "'Organization.Name'",
+          "label": "Organization",
+          "type": "Text"
+        },
+        {
+          "precision": 12,
+          "name": "Win_Value",
+          "saqlExpression": "case \n    when 'RecordType.DeveloperName' == \"Advocacy\" then 'AC_Total_US_Export_Content__c'\n    when 'RecordType.DeveloperName' == \"Advocacy_Locked\" then 'AC_Total_US_Export_Content__c'\n    when 'RecordType.DeveloperName' == \"Commercial_Diplomacy\" then 'Client_Provided_Value__c'\n    when 'RecordType.DeveloperName' == \"Commercial_Diplomacy_Locked\" then 'Client_Provided_Value__c'\n    when 'RecordType.DeveloperName' == \"Export_Promotion\" then 'Actual_Initial_Value__c' + 'Actual_Follow_on_Value__c'\n    when 'RecordType.DeveloperName' == \"Export_Promotion_Locked\" then 'Actual_Initial_Value__c' + 'Actual_Follow_on_Value__c'\n    when 'RecordType.DeveloperName' == \"Investment_Promotion\" then 'IP_Inv_Amount_est__c'\n    when 'RecordType.DeveloperName' == \"Investment_Promotion_Locked\" then 'IP_Inv_Amount_est__c'\nend",
+          "scale": 2,
+          "label": "Win Value",
+          "type": "Numeric"
+        }
+      ]
+    }
+  },
+  "Add Order for Win Contributor": {
+    "action": "computeRelative",
+    "parameters": {
+      "partitionBy": [
+        "WIN__c"
+      ],
+      "orderBy": [
+        {
+          "name": "Id",
+          "direction": "asc"
+        }
+      ],
+      "source": "Filter Is Parent Null false for Win Contributor",
+      "computedFields": [
+        {
+          "expression": {
+            "saqlExpression": "case\n    when previous('Order') > 0 then previous('Order') + 1\n    else 1\nend",
+            "scale": 10,
+            "type": "Numeric"
+          },
+          "name": "Order",
+          "label": "Order"
+        }
+      ]
+    }
+  },
+  "Load Users": {
+    "action": "sfdcDigest",
+    "parameters": {
+      "incremental": true,
+      "fields": [
+        {
+          "name": "Id"
+        },
+        {
+          "name": "FirstName"
+        },
+        {
+          "name": "LastName"
+        }
+      ],
+      "object": "User"
+    }
+  },
+  "Load Win Contributor": {
+    "action": "sfdcDigest",
+    "parameters": {
+      "incremental": true,
+      "fields": [
+        {
+          "name": "Contributor_Name__c"
+        },
+        {
+          "name": "Contributor__c"
+        },
+        {
+          "name": "Id"
+        },
+        {
+          "name": "RH_Lev_1_GM_All__c"
+        },
+        {
+          "name": "RH_Lev_2_DAS__c"
+        },
+        {
+          "name": "RH_Lev_3_Region_2__c"
+        },
+        {
+          "name": "RH_Lev_4_Region_1__c"
+        },
+        {
+          "name": "RH_Lev_5_Country__c"
+        },
+        {
+          "name": "RH_Lev_6_Office__c"
+        },
+        {
+          "name": "RH_Lev_7_Individual__c"
+        },
+        {
+          "name": "WIN__c"
+        },
+        {
+          "name": "Inactive__c"
+        },
+        {
+          "name": "Name"
+        }
+      ],
+      "complexFilterConditions": "IsDeleted = false\nAND WIN__r.IsDeleted = false\nAND RH_Lev_1_GM_All__c = 'GM All'\nAND WIN__r.RecordType.DeveloperName IN (\n    'Advocacy',\n    'Advocacy_Locked',\n    'Commercial_Diplomacy',\n    'Commercial_Diplomacy_Locked',\n    'Export_Promotion',\n    'Export_Promotion_Locked',\n    'Investment_Promotion',\n    'Investment_Promotion_Locked'\n)\nAND WIN__r.Final_Line_Approval__c = 'Approved'\nAND (\n    WIN__r.Actual_Create_Date__c = LAST_N_FISCAL_YEARS:3\n    OR WIN__r.Actual_Create_Date__c = THIS_FISCAL_YEAR\n)",
+      "object": "WIN_Contributor__c"
+    }
+  },
+  "Add Formulas to Win": {
+    "action": "computeExpression",
+    "parameters": {
+      "source": "Filter Record Type for WIN",
+      "mergeWithSource": true,
+      "computedFields": [
+        {
+          "name": "Fiscal_Year",
+          "saqlExpression": "'Actual_Create_Date__c_Year_Fiscal'",
+          "label": "Fiscal Year",
+          "type": "Text"
+        },
+        {
+          "name": "Created_Date",
+          "format": "yyyy-MM-dd",
+          "saqlExpression": "toDate('Actual_Create_Date__c_sec_epoch')",
+          "label": "Created Date",
+          "type": "Date"
+        },
+        {
+          "name": "Primary_Outcome_Short",
+          "saqlExpression": "case\n\twhen 'Primary_Outcome__c' == \"Compliance with trade agreement\" then \"Compliance\"\n\twhen 'Primary_Outcome__c' == \"Facilitated export transaction\" then \"Export\"\n\twhen 'Primary_Outcome__c' == \"Reduced/Eliminated threat to US business\" then \"Threat\"\n\twhen 'Primary_Outcome__c' == \"Reduced/Removed/Prevented trade barrier\" then \"Trade Barrier\"\n\telse 'Primary_Outcome__c'\nend",
+          "label": "Primary Outcome (Short)",
+          "type": "Text"
+        }
+      ]
+    }
+  },
+  "Add Flatten IDs for Win Contributor": {
+    "action": "computeExpression",
+    "parameters": {
+      "source": "Add Order for Win Contributor",
+      "mergeWithSource": true,
+      "computedFields": [
+        {
+          "name": "Contributor_ID",
+          "saqlExpression": "'Contributor_Name__c'",
+          "label": "Contributor ID",
+          "type": "Text"
+        },
+        {
+          "name": "Flatten_Self_ID",
+          "saqlExpression": "'WIN__c' + \":\" + number_to_string('Order', \"0\")",
+          "label": "Flatten: Self ID",
+          "type": "Text"
+        },
+        {
+          "name": "Flatten_Parent_ID",
+          "saqlExpression": "case\n    when 'Order' > 1 then 'WIN__c' + \":\" + number_to_string('Order' - 1, \"0\")\nend",
+          "label": "Flatten: Parent ID",
+          "type": "Text"
+        },
+        {
+          "name": "DAS",
+          "saqlExpression": "case\n\twhen 'RH_Lev_2_DAS__c' == \"GM Advocacy Everywhere\" then \"Advocacy\"\n\twhen 'RH_Lev_2_DAS__c' == \"GM CS-Asia-HQ DAS Office\" then \"Asia\"\n\twhen 'RH_Lev_2_DAS__c' == \"GM CS-China-HQ DAS Office\" then \"China\"\n\twhen 'RH_Lev_2_DAS__c' == \"GM CS-EMEA-HQ DAS Office\" then \"EMEA\"\n\twhen 'RH_Lev_2_DAS__c' == \"GM CS-EUR-HQ DAS Office\" then \"Europe\"\n\twhen 'RH_Lev_2_DAS__c' == \"GM CS-MEA-HQ DAS Office\" then \"MEA\"\n\twhen 'RH_Lev_2_DAS__c' == \"GM CS-USA-HQ DAS Office\" then \"U.S.\"\n\twhen 'RH_Lev_2_DAS__c' == \"GM CS-WH-HQ DAS Office\" then \"WH\"\n\twhen 'RH_Lev_2_DAS__c' == \"GM SelectUSA Everywhere\" then \"SUSA\"\n\twhen 'RH_Lev_2_DAS__c' == \"IA TPA DAS Office\" then \"IA TPA\"\n\telse 'RH_Lev_2_DAS__c'\nend",
+          "label": "DAS",
+          "type": "Text"
+        }
+      ]
+    }
+  },
+  "Add IsLastOrder to Win Contributor": {
+    "action": "computeRelative",
+    "parameters": {
+      "source": "Join Win Conributors to Win Contributor",
+      "computedFields": [
+        {
+          "name": "IsLastOrder",
+          "label": "Is Last Order",
+          "expression": {
+            "saqlExpression": " case first('Order')\n    when current('Order') then \"true\"\n    else \"false\"\nend",
+            "type": "Text"
+          }
+        }
+      ],
+      "orderBy": [
+        {
+          "name": "Order",
+          "direction": "desc"
+        }
+      ],
+      "partitionBy": [
+        "WIN__c"
+      ]
+    }
+  },
+  "Filter IsDeleted, IsWin to Country": {
+    "action": "filter",
+    "parameters": {
+      "source": "Add Formulas For Country",
+      "filter": "IsDeleted:EQ:false,IsWin:EQ:true"
+    }
+  }
+}
