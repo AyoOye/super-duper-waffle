@@ -3,3 +3,5 @@
 By using SSH, we will create an SSH key, which can be linked to our GitHub account. When you then connect from your 
 local machine to GitHub, you will not be prompted to enter your credentials each and every time. If needed, you can also combine this with a single sign-on approach if it's been set up for your GitHub access. 
 And don't fear, using SSH is just as secure as HTTPS, so although you're taking a bit of a shortcut here, you're not compromising on security.
+
+Please refer to the website for more instruction.
