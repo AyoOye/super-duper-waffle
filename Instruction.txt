@@ -5,3 +5,5 @@ local machine to GitHub, you will not be prompted to enter your credentials each
 And don't fear, using SSH is just as secure as HTTPS, so although you're taking a bit of a shortcut here, you're not compromising on security.
 
 Please refer to the website for more instruction.
+
+More info on website
